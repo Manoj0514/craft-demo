@@ -40,9 +40,13 @@ build/Release
 # Dependency directories
 node_modules/
 jspm_packages/
+cdk.out/
 
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
+
+# vscode color 
+.vscode/
 
 # TypeScript cache
 *.tsbuildinfo
