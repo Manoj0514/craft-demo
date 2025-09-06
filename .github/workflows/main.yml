@@ -1,0 +1,40 @@
+
+name: Build+Deploy main
+on:
+  push:
+    branches: [main]
+
+env: 
+  IMAGE_TAG: ${{ github.sha }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - name: checkout code 
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.version }}
+
+  deploy:
+    runs-on: self-hosted
+    needs: build
+    steps:
+      - name: checkout code 
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.version }}
+
+      - name: cdk synth 
+        working-directory: ./infrastructure
+        run: |
+          cdk --version
+          npm ci
+          npm install
+          cdk synth
+          cdk list
+          cdk deploy dev-us-east-2/app/App
