@@ -6,7 +6,7 @@ import { App, Stage, StageProps } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 import { PrereqsStack } from '../lib/PrereqsStack'
 import { ServiceStack } from '../lib/ServiceStack'
-import { VpcStack } from '../lib/VpcStack'
+// import { VpcStack } from '../lib/VpcStack'
 import { APP_NAME, SDLCAccounts, TargetRegions, COMPANY_NAME } from '../config/environments'
 
 const app = new App()
