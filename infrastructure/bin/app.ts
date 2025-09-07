@@ -7,7 +7,7 @@ import { Construct } from 'constructs'
 import { PrereqsStack } from '../lib/PrereqsStack'
 import { ServiceStack } from '../lib/ServiceStack'
 import { VpcStack } from '../lib/VpcStack'
-import { APP_NAME, SDLCAccounts, TargetRegions, COMPANY_NAME, IMAGE_TAG } from '../config/environments'
+import { APP_NAME, SDLCAccounts, TargetRegions, COMPANY_NAME } from '../config/environments'
 
 const app = new App()
 
