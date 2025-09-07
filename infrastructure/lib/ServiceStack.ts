@@ -1,8 +1,10 @@
-import { Duration, Stack, StackProps, Tags, RemovalPolicy } from 'aws-cdk-lib'
-import { Vpc } from 'aws-cdk-lib/aws-ec2'
-import { ApplicationLoadBalancer } from 'aws-cdk-lib/aws-elasticloadbalancingv2'
+import { Stack, StackProps, Tags } from 'aws-cdk-lib'
+import { Vpc, SecurityGroup, Peer, Port, InterfaceVpcEndpointAwsService, InstanceType, MachineImage, SubnetType } from 'aws-cdk-lib/aws-ec2'
+import { Role, ServicePrincipal, ManagedPolicy } from 'aws-cdk-lib/aws-iam'
+import { AutoScalingGroup } from 'aws-cdk-lib/aws-autoscaling'
 import { Construct } from 'constructs'
 import { COMPANY_NAME } from '../config/environments'
+import { ApplicationLoadBalancer, ApplicationProtocol, ApplicationListener, ApplicationTargetGroup, TargetType } from 'aws-cdk-lib/aws-elasticloadbalancingv2'
 
 export interface ServiceStackProps extends StackProps {
   vpcName: string
@@ -13,14 +15,28 @@ export class ServiceStack extends Stack {
     super(scope, id, props)
     Tags.of(this).add('company', COMPANY_NAME)
 
-    const account = Stack.of(this).account
-    const region = Stack.of(this).region
-
     const vpc = Vpc.fromLookup(this, 'vpc', {
       vpcName: props.vpcName,
     })
 
     const subnets = vpc.selectSubnets({ subnetGroupName: 'Public' })
+
+    const securityGroup = new SecurityGroup(this, 'flaskApp', {
+      vpc,
+      allowAllOutbound: true,
+      securityGroupName: 'flaskApp',
+    })
+
+    // Allow HTTP traffic
+    securityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(5000), 'Allow HTTP traffic')
+
+    // Allow SSH from specific IP
+    securityGroup.addIngressRule(Peer.ipv4('73.196.208.53/32'), Port.tcp(22), 'Allow SSH from specific IP')
+
+    vpc.addInterfaceEndpoint('secretsEndpoint', {
+      service: InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
+      securityGroups: [securityGroup],
+    })
 
     const alb = new ApplicationLoadBalancer(this, 'alb', {
       vpc: vpc,
@@ -28,5 +44,64 @@ export class ServiceStack extends Stack {
       vpcSubnets: subnets,
     })
 
+    const instanceRole = new Role(this, 'InstanceRole', {
+      assumedBy: new ServicePrincipal('ec2.amazonaws.com'),
+      managedPolicies: [ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore')],
+    })
+
+    instanceRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('SecretsManagerReadWrite'))
+
+    const asg = new AutoScalingGroup(this, 'AutoScalingGroup', {
+      vpc,
+      instanceType: new InstanceType('t3.micro'),
+      machineImage: MachineImage.latestAmazonLinux2(),
+      securityGroup,
+      role: instanceRole,
+      vpcSubnets: { subnetType: SubnetType.PUBLIC },
+      desiredCapacity: 1,
+      keyName: 'firstkey',
+    })
+
+    asg.addUserData(
+      `#!/bin/bash
+      amazon-linux-extras install epel -y
+      yum update -y
+      yum install python3-pip -y
+      pip3 install flask boto3
+
+      echo "export FLASK_APP=/home/ec2-user/app.py" >> /etc/profile
+      echo "export API_KEY=$(aws secretsmanager get-secret-value --secret-id YOUR_SECRET_ID --query 'SecretString' --output text)" >> /etc/profile
+
+      # Copy app.py from the local file system
+      cp /Users/manojkumaredara/git/flask-app-demo/flaskapp/app.py /home/ec2-user/app.py
+      FLASK_APP=/home/ec2-user/app.py nohup flask run --host=0.0.0.0 &
+      `
+    )
+
+    // Create a target group
+    // const targetGroup = new ApplicationTargetGroup(this, 'TargetGroup', {
+    //   vpc,
+    //   targetType: TargetType.INSTANCE,
+    //   port: 5000,
+    //   protocol: ApplicationProtocol.HTTP,
+    //   healthCheck: {
+    //     port: '5000',
+    //   },
+    // })
+
+    // // Add the ASG instances to the target group
+    // asg.attachToApplicationTargetGroup(targetGroup)
+
+    // // Add a listener to the load balancer
+    // const listener = alb.addListener('Listener', {
+    //   port: 80,
+    //   open: true,
+    // })
+
+    // // Forward traffic from the listener to the target group
+    // listener.addTargets('Targets', {
+    //   targetGroupName: targetGroup.targetGroupName,
+    //   targets: [asg],
+    // })
   }
 }

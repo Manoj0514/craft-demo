@@ -29,17 +29,6 @@ export class PrereqsStack extends Stack {
       ],
     })
 
-    const securityGroup = new SecurityGroup(this, 'flaskApp', {
-      vpc,
-      allowAllOutbound: true,
-      securityGroupName: 'flaskApp',
-    })
 
-    securityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(5000), 'Allow HTTP traffic')
-
-    vpc.addInterfaceEndpoint('secretsEndpoint', {
-      service: InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
-      securityGroups: [securityGroup],
-    })
   }
 }
