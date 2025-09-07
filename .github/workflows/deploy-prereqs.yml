@@ -38,4 +38,4 @@ jobs:
           npm install
           cdk synth
           cdk list
-          cdk deploy dev-us-east-2/prereqs/Prereqs
+          cdk deploy dev-us-east-2/prereqs/Vpc
