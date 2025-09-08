@@ -20,7 +20,7 @@ export class ServiceStack extends Stack {
       vpcName: props.vpcName,
     })
 
-    const subnets = vpc.selectSubnets({ subnetGroupName: 'Public' })
+    const subnets = vpc.selectSubnets({ subnetGroupName: 'Private' })
 
     const securityGroup = new SecurityGroup(this, 'flaskApp', {
       vpc,
@@ -97,7 +97,7 @@ export class ServiceStack extends Stack {
     const asg = new AutoScalingGroup(this, 'AutoScalingGroup', {
       vpc,
       launchTemplate,
-      vpcSubnets: { subnetType: SubnetType.PUBLIC },
+      vpcSubnets: { subnetType: SubnetType.PRIVATE_WITH_EGRESS },
       desiredCapacity: 1,
     })
 

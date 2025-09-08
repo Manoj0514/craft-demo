@@ -27,7 +27,7 @@ interface EnvironmentStageProps extends StageProps {
   stage: string
 }
 
-const vpcName = 'dev-us-east-2/prereqs/Vpc/demoVpc'
+const vpcName = 'craft-demo-vpc'
 class PrereqsStage extends TaggedStage {
   constructor(scope: Construct, id: string, props: EnvironmentStageProps) {
     super(scope, id, props)
