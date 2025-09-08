@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    api_key = os.getenv('API_KEY', 'API_KEY not found')
+    api_key = os.getenv('API_KEY')
     return f'<h1>Your API Key is: {api_key}</h1>'
 
 if __name__ == '__main__':
