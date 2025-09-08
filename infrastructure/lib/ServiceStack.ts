@@ -68,8 +68,8 @@ export class ServiceStack extends Stack {
       pip3 install flask boto3
 
       export API_KEY=$(aws secretsmanager get-secret-value --secret-id craft-demo-secret --query 'SecretString' --output text --region us-east-2)
-
       aws s3 cp s3://flask-app-resources/destination/app.py /home/ec2-user/app.py
+      
       FLASK_APP=/home/ec2-user/app.py nohup flask run --host=0.0.0.0 &
     `)
 
