@@ -45,8 +45,7 @@ export class ServiceStack extends Stack {
       vpcSubnets: subnets,
     })
 
-
-    const mySecret = new Secret(this, 'craftSecret', {
+    const craftSecret = new Secret(this, 'craftSecret', {
       secretName: 'craft-demo-secret',
     })
 
@@ -56,22 +55,35 @@ export class ServiceStack extends Stack {
     })
 
     instanceRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('SecretsManagerReadWrite'))
-    instanceRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonS3FullAccess'));
+    instanceRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonS3FullAccess'))
 
     // Allow the instance role to read from this secret
-    mySecret.grantRead(instanceRole)
+    craftSecret.grantRead(instanceRole)
 
-    const userData = UserData.custom(`#!/bin/bash
+    const userData = UserData.custom(
+      `#!/bin/bash
       amazon-linux-extras install epel -y
-      yum update -y
-      yum install python3-pip -y
-      pip3 install flask boto3 -q
+      sudo yum update -y
+      sudo yum install python3-pip -y
+      pip3 install flask boto3 awscli -q
 
-      export API_KEY=$(aws secretsmanager get-secret-value --secret-id craft-demo-secret --query 'SecretString' --output text --region us-east-2)
+      # Set env vars 
+      export FLASK_APP=/home/ec2-user/app.py
+      export API_KEY=$(aws secretsmanager get-secret-value \
+      --secret-id craft-demo-secret \
+      --query 'SecretString' \
+      --output text \
+      --region us-east-2)
+
+      echo $API_KEY
+
+      # Pull your app code
       aws s3 cp s3://flask-app-resources/destination/app.py /home/ec2-user/app.py
 
-      FLASK_APP=/home/ec2-user/app.py nohup flask run --host=0.0.0.0 &
-    `)
+
+      # Start Flask
+      nohup flask run --host=0.0.0.0 &
+      `)
 
     const launchTemplate = new LaunchTemplate(this, 'LaunchTemplate', {
       machineImage: MachineImage.latestAmazonLinux2(),
@@ -116,4 +128,3 @@ export class ServiceStack extends Stack {
     // })
   }
 }
-
