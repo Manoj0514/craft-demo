@@ -20,6 +20,21 @@ jobs:
         with:
           ref: ${{ inputs.version }}
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      # Copy the file to S3
+      - name: Copy file to S3
+        run: |
+          pwd
+          ls 
+          aws s3 cp flaskapp/app.py  s3://flask-app-resources/destination/app.py
+
+
   deploy:
     runs-on: self-hosted
     needs: build

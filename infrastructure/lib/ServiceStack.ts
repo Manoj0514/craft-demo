@@ -4,6 +4,7 @@ import { Role, ServicePrincipal, ManagedPolicy } from 'aws-cdk-lib/aws-iam'
 import { AutoScalingGroup } from 'aws-cdk-lib/aws-autoscaling'
 import { Construct } from 'constructs'
 import { COMPANY_NAME } from '../config/environments'
+import { Secret } from 'aws-cdk-lib/aws-secretsmanager'
 import { ApplicationLoadBalancer, ApplicationProtocol, ApplicationListener, ApplicationTargetGroup, TargetType } from 'aws-cdk-lib/aws-elasticloadbalancingv2'
 
 export interface ServiceStackProps extends StackProps {
@@ -44,12 +45,25 @@ export class ServiceStack extends Stack {
       vpcSubnets: subnets,
     })
 
+
+    const mySecret = new Secret(this, 'craftSecret', {
+      secretName: 'craft-demo-secret',
+      generateSecretString: {
+        secretStringTemplate: JSON.stringify({ username: 'user' }),
+        generateStringKey: 'password',
+      },
+    })
+
     const instanceRole = new Role(this, 'InstanceRole', {
       assumedBy: new ServicePrincipal('ec2.amazonaws.com'),
       managedPolicies: [ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore')],
     })
 
     instanceRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('SecretsManagerReadWrite'))
+    instanceRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonS3FullAccess'));
+
+    // Allow the instance role to read from this secret
+    mySecret.grantRead(instanceRole)
 
     const userData = UserData.custom(`#!/bin/bash
       amazon-linux-extras install epel -y
@@ -57,10 +71,10 @@ export class ServiceStack extends Stack {
       yum install python3-pip -y
       pip3 install flask boto3
 
-      echo "export FLASK_APP=/home/ec2-user/app.py" >> /etc/profile
-      echo "export API_KEY=$(aws secretsmanager get-secret-value --secret-id YOUR_SECRET_ID --query 'SecretString' --output text)" >> /etc/profile
+      echo "export FLASK_APP=/home/ec2-user/app.py"
+      echo "export API_KEY=$(aws secretsmanager get-secret-value --secret-id YOUR_SECRET_ID --query 'SecretString' --output text)"
 
-      cp /Users/manojkumaredara/git/flask-app-demo/flaskapp/app.py /home/ec2-user/app.py
+      aws s3 cp s3://flask-app-resources/destination/app.py /home/ec2-user/app.py
       FLASK_APP=/home/ec2-user/app.py nohup flask run --host=0.0.0.0 &
     `)
 
