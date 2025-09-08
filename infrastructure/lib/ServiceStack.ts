@@ -48,10 +48,6 @@ export class ServiceStack extends Stack {
 
     const mySecret = new Secret(this, 'craftSecret', {
       secretName: 'craft-demo-secret',
-      generateSecretString: {
-        secretStringTemplate: JSON.stringify({ username: 'user' }),
-        generateStringKey: 'password',
-      },
     })
 
     const instanceRole = new Role(this, 'InstanceRole', {
@@ -72,7 +68,7 @@ export class ServiceStack extends Stack {
       pip3 install flask boto3
 
       echo "export FLASK_APP=/home/ec2-user/app.py"
-      echo "export API_KEY=$(aws secretsmanager get-secret-value --secret-id YOUR_SECRET_ID --query 'SecretString' --output text)"
+      echo "export API_KEY=$(aws secretsmanager get-secret-value --secret-id YOUR_SECRET_ID --query 'SecretString' --output text --region us-east-2)"
 
       aws s3 cp s3://flask-app-resources/destination/app.py /home/ec2-user/app.py
       FLASK_APP=/home/ec2-user/app.py nohup flask run --host=0.0.0.0 &
