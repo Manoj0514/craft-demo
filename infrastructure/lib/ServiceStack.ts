@@ -1,5 +1,5 @@
 import { Stack, StackProps, Tags } from 'aws-cdk-lib'
-import { Vpc, SecurityGroup, Peer, Port, InterfaceVpcEndpointAwsService, InstanceType, MachineImage, SubnetType } from 'aws-cdk-lib/aws-ec2'
+import { Vpc, SecurityGroup, Peer, Port, InterfaceVpcEndpointAwsService, InstanceType, MachineImage, SubnetType, LaunchTemplate, UserData } from 'aws-cdk-lib/aws-ec2'
 import { Role, ServicePrincipal, ManagedPolicy } from 'aws-cdk-lib/aws-iam'
 import { AutoScalingGroup } from 'aws-cdk-lib/aws-autoscaling'
 import { Construct } from 'constructs'
@@ -51,19 +51,7 @@ export class ServiceStack extends Stack {
 
     instanceRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('SecretsManagerReadWrite'))
 
-    const asg = new AutoScalingGroup(this, 'AutoScalingGroup', {
-      vpc,
-      instanceType: new InstanceType('t3.micro'),
-      machineImage: MachineImage.latestAmazonLinux2(),
-      securityGroup,
-      role: instanceRole,
-      vpcSubnets: { subnetType: SubnetType.PUBLIC },
-      desiredCapacity: 1,
-      keyName: 'firstkey',
-    })
-
-    asg.addUserData(
-      `#!/bin/bash
+    const userData = UserData.custom(`#!/bin/bash
       amazon-linux-extras install epel -y
       yum update -y
       yum install python3-pip -y
@@ -72,11 +60,25 @@ export class ServiceStack extends Stack {
       echo "export FLASK_APP=/home/ec2-user/app.py" >> /etc/profile
       echo "export API_KEY=$(aws secretsmanager get-secret-value --secret-id YOUR_SECRET_ID --query 'SecretString' --output text)" >> /etc/profile
 
-      # Copy app.py from the local file system
       cp /Users/manojkumaredara/git/flask-app-demo/flaskapp/app.py /home/ec2-user/app.py
       FLASK_APP=/home/ec2-user/app.py nohup flask run --host=0.0.0.0 &
-      `
-    )
+    `)
+
+    const launchTemplate = new LaunchTemplate(this, 'LaunchTemplate', {
+      machineImage: MachineImage.latestAmazonLinux2(),
+      instanceType: new InstanceType('t3.micro'),
+      securityGroup,
+      role: instanceRole,
+      userData,
+      keyName: 'firstkey',
+    })
+
+    const asg = new AutoScalingGroup(this, 'AutoScalingGroup', {
+      vpc,
+      launchTemplate,
+      vpcSubnets: { subnetType: SubnetType.PUBLIC },
+      desiredCapacity: 1,
+    })
 
     // Create a target group
     // const targetGroup = new ApplicationTargetGroup(this, 'TargetGroup', {
@@ -105,3 +107,4 @@ export class ServiceStack extends Stack {
     // })
   }
 }
+
