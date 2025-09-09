@@ -35,7 +35,7 @@ jobs:
           aws s3 cp flaskapp/app.py  s3://flask-app-resources/destination/app.py
 
 
-  deploy:
+  deploy-useast2:
     runs-on: self-hosted
     needs: build
     steps:
@@ -53,3 +53,21 @@ jobs:
           cdk synth
           cdk list
           cdk deploy dev-us-east-2/app/App
+  deploy-useast1:
+    runs-on: self-hosted
+    needs: build
+    steps:
+      - name: checkout code 
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.version }}
+
+      - name: cdk synth 
+        working-directory: ./infrastructure
+        run: |
+          cdk --version
+          npm ci
+          npm install
+          cdk synth
+          cdk list
+          cdk deploy dev-us-east-1/app/App

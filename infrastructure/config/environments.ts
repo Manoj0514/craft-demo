@@ -6,7 +6,7 @@ export const APP_NAME = AppConfig.app
 export const PLATFORM_VERSION = AppConfig.platformVersion
 
 // target AWS regions for CI/CD and service stack deployment
-export const TargetRegions = ['us-east-2']
+export const TargetRegions = ['us-east-2', 'us-east-1']
 
 //  AWS accounts for service stack deployment
 export const SDLCAccounts = [
