@@ -1,4 +1,4 @@
-import { Stack, StackProps, Tags } from 'aws-cdk-lib'
+import { Stack, StackProps, Tags, Duration } from 'aws-cdk-lib'
 import { Vpc, SecurityGroup, InterfaceVpcEndpointAwsService, InstanceType, MachineImage, SubnetType, LaunchTemplate, UserData } from 'aws-cdk-lib/aws-ec2'
 import { Role, ServicePrincipal, ManagedPolicy } from 'aws-cdk-lib/aws-iam'
 import { AutoScalingGroup } from 'aws-cdk-lib/aws-autoscaling'
@@ -6,6 +6,8 @@ import { Construct } from 'constructs'
 import { COMPANY_NAME } from '../config/environments'
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager'
 import { ApplicationLoadBalancer, ApplicationProtocol, ApplicationListener, ApplicationTargetGroup, TargetType, ListenerAction } from 'aws-cdk-lib/aws-elasticloadbalancingv2'
+import { HostedZone, ARecord, RecordTarget } from 'aws-cdk-lib/aws-route53'
+import { LoadBalancerTarget } from 'aws-cdk-lib/aws-route53-targets'
 
 export interface ServiceStackProps extends StackProps {
   vpcName: string
@@ -45,6 +47,21 @@ export class ServiceStack extends Stack {
       vpc: vpc,
       internetFacing: true, // Internet-facing load balancer
       vpcSubnets: albSubnets,
+    })
+
+    // Lookup the existing public hosted zone
+    const hostedZone = HostedZone.fromLookup(this, 'HostedZone', {
+      domainName: 'demo.com', // Replace with the actual domain name if different
+    })
+
+    //  weighted A Record for the ALB in the hosted zone 
+    new ARecord(this, 'AliasRecord', {
+      zone: hostedZone,
+      target: RecordTarget.fromAlias(new LoadBalancerTarget(alb)),
+      recordName: 'craft', 
+      ttl: Duration.minutes(1), 
+      weight: 50, // Weighted routing policy with value 50
+      setIdentifier: `alb-${Stack.of(this).region}-50`,
     })
 
     // Creating a secret in AWS Secrets Manager for flask app
