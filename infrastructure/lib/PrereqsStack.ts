@@ -2,6 +2,7 @@ import { RemovalPolicy, Stack, StackProps, Tags } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 import { COMPANY_NAME } from '../config/environments'
 import { Vpc, SubnetType, NatProvider } from 'aws-cdk-lib/aws-ec2'
+import { HostedZone } from 'aws-cdk-lib/aws-route53'  
 
 // Interface for the stack properties, extending AWS CDK StackProps
 export interface PrereqsStackProps extends StackProps {
@@ -37,5 +38,12 @@ export class PrereqsStack extends Stack {
         },
       ],
     })
+
+    // Conditionally create a public hosted zone if the region is us-east-1
+    if (Stack.of(this).region === 'us-east-2') {
+      const hostedZone = new HostedZone(this, 'DemoHostedZone', {
+        zoneName: 'demo.com',
+      })
+    }
   }
 }
