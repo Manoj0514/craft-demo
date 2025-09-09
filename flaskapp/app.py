@@ -10,7 +10,9 @@ app = Flask(__name__)
 def home():
     # Retrieve the API_KEY environment variable and return it in the response
     api_key = os.getenv('API_KEY')
-    return f'<h1>Here is the API KEY from secret manager: {api_key}</h1>'
+    region = os.getenv('AWS_REGION')
+    az = os.getenv('AWS_AVAILABILITY_ZONE')
+    return f'<h1>The instance is runnnig in {region} region and in {az} availablity zone. Here is the API KEY from secret manager: {api_key}</h1>'
 
 # Entry point for running the application
 if __name__ == '__main__':

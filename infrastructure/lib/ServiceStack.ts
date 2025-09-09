@@ -75,11 +75,14 @@ export class ServiceStack extends Stack {
 
       # Set environment variables
       export FLASK_APP=/home/ec2-user/app.py
+      export AWS_REGION=$(curl -s http://169.254.169.254/latest/meta-data/placement/region)
       export API_KEY=$(aws secretsmanager get-secret-value \
       --secret-id craft-demo-secret \
       --query 'SecretString' \
       --output text \
-      --region us-east-2)
+      --region $AWS_REGION)
+      export AWS_AVAILABILITY_ZONE=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
+      
 
       echo $API_KEY
 
