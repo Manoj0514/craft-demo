@@ -20,13 +20,6 @@ jobs:
         with:
           ref: ${{ inputs.version }}
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
-
       # Copy the file to S3
       - name: Copy file to S3
         run: |
@@ -73,41 +66,41 @@ jobs:
           cdk list
           cdk deploy dev-us-east-1/app/App
 
-  prod-deploy-useast1:
-    runs-on: self-hosted
-    needs: [deploy-useast1]
-    steps:
-      - name: checkout code 
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ inputs.version }}
+  # prod-deploy-useast1:
+  #   runs-on: self-hosted
+  #   needs: [deploy-useast1]
+  #   steps:
+  #     - name: checkout code 
+  #       uses: actions/checkout@v3
+  #       with:
+  #         ref: ${{ inputs.version }}
 
-      - name: cdk synth 
-        working-directory: ./infrastructure
-        run: |
-          cdk --version
-          npm ci
-          npm install
-          cdk synth
-          cdk list
-          cdk deploy dev-us-east-1/app/App
+  #     - name: cdk synth 
+  #       working-directory: ./infrastructure
+  #       run: |
+  #         cdk --version
+  #         npm ci
+  #         npm install
+  #         cdk synth
+  #         cdk list
+  #         cdk deploy dev-us-east-1/app/App
 
-  prod-deploy-useast2:
-    runs-on: self-hosted
-    needs: [deploy-useast2]
-    steps:
-      - name: checkout code
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ inputs.version }}
+  # prod-deploy-useast2:
+  #   runs-on: self-hosted
+  #   needs: [deploy-useast2]
+  #   steps:
+  #     - name: checkout code
+  #       uses: actions/checkout@v3
+  #       with:
+  #         ref: ${{ inputs.version }}
 
-      - name: cdk synth 
-        working-directory: ./infrastructure
-        run: |
-          cdk --version
-          npm ci
-          npm install
-          cdk synth
-          cdk list
-          cdk deploy dev-us-east-1/app/App
+  #     - name: cdk synth 
+  #       working-directory: ./infrastructure
+  #       run: |
+  #         cdk --version
+  #         npm ci
+  #         npm install
+  #         cdk synth
+  #         cdk list
+  #         cdk deploy dev-us-east-1/app/App
 
