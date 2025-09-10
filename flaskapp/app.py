@@ -32,7 +32,7 @@ def home():
         <body>
             <h1>Flask app is running in {az} availability zone.</h1>
             <button onclick="toggleApiKey()">Show API Key</button>
-            <div id="api-key">API Key: {api_key}</div>
+            <div id="api-key">{api_key}</div>
         </body>
     </html>
     '''
