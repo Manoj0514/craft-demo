@@ -45,13 +45,13 @@ export class ServiceStack extends Stack {
     // Creates an application load balancer
     const alb = new ApplicationLoadBalancer(this, 'alb', {
       vpc: vpc,
-      internetFacing: true, // Internet-facing load balancer
+      internetFacing: true,
       vpcSubnets: albSubnets,
     })
 
     // Lookup the existing public hosted zone
     const hostedZone = HostedZone.fromLookup(this, 'HostedZone', {
-      domainName: 'craftdemo.click', // Replace with the actual domain name if different
+      domainName: 'craftdemo.click', 
     })
 
     //  weighted A Record for the ALB in the hosted zone 
@@ -126,7 +126,7 @@ export class ServiceStack extends Stack {
       vpc,
       launchTemplate,
       vpcSubnets: { subnetType: SubnetType.PRIVATE_WITH_EGRESS },
-      desiredCapacity: 1,
+      desiredCapacity: 2,
     })
 
     // Application target group
