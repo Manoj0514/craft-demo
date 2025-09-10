@@ -51,14 +51,14 @@ export class ServiceStack extends Stack {
 
     // Lookup the existing public hosted zone
     const hostedZone = HostedZone.fromLookup(this, 'HostedZone', {
-      domainName: 'demo.com', // Replace with the actual domain name if different
+      domainName: 'craftdemo.click', // Replace with the actual domain name if different
     })
 
     //  weighted A Record for the ALB in the hosted zone 
     new ARecord(this, 'AliasRecord', {
       zone: hostedZone,
       target: RecordTarget.fromAlias(new LoadBalancerTarget(alb)),
-      recordName: 'craft', 
+      recordName: 'intuit', 
       ttl: Duration.minutes(1), 
       weight: 50, // Weighted routing policy with value 50
       setIdentifier: `alb-${Stack.of(this).region}-50`,
