@@ -38,12 +38,5 @@ export class PrereqsStack extends Stack {
         },
       ],
     })
-
-    // Conditionally create a public hosted zone if the region is us-east-1
-    if (Stack.of(this).region === 'us-east-2') {
-      const hostedZone = new HostedZone(this, 'DemoHostedZone', {
-        zoneName: 'demo.com',
-      })
-    }
   }
 }

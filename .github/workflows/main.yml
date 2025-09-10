@@ -53,6 +53,7 @@ jobs:
           cdk synth
           cdk list
           cdk deploy dev-us-east-2/app/App
+
   deploy-useast1:
     runs-on: self-hosted
     needs: build
@@ -71,3 +72,71 @@ jobs:
           cdk synth
           cdk list
           cdk deploy dev-us-east-1/app/App
+
+  approval-useast1:
+    runs-on: self-hosted
+    needs: deploy-useast1
+    steps:
+      - name: Approval needed
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const res = await github.repos.createDispatchEvent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              event_type: "approval",
+            });
+            console.log(res.data);
+  prod-deploy-useast1:
+    runs-on: self-hosted
+    needs: [deploy-useast1, approval-useast1]
+    steps:
+      - name: checkout code 
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.version }}
+
+      - name: cdk synth 
+        working-directory: ./infrastructure
+        run: |
+          cdk --version
+          npm ci
+          npm install
+          cdk synth
+          cdk list
+          cdk deploy dev-us-east-1/app/App
+
+  approval-useast2:
+    runs-on: self-hosted
+    needs: deploy-useast2
+    steps:
+      - name: Approval needed
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const res = await github.repos.createDispatchEvent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              event_type: "approval",
+            });
+            console.log(res.data);
+
+  prod-deploy-useast2:
+    runs-on: self-hosted
+    needs: [deploy-useast2, approval-useast2]
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.version }}
+
+      - name: cdk synth 
+        working-directory: ./infrastructure
+        run: |
+          cdk --version
+          npm ci
+          npm install
+          cdk synth
+          cdk list
+          cdk deploy dev-us-east-1/app/App
+
