@@ -2,6 +2,9 @@
 
 This repository contains the code for deploying AWS resources and a Python-based Flask application. It uses AWS resources for hosting the application and incorporates GitHub Actions for CI/CD processes.
 
+## Architecture
+![alt text](image.png)
+
 ## Project Structure
 
 - **flaskapp/**: Contains the Flask application code (`app.py`).

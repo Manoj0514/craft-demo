@@ -49,20 +49,20 @@ export class ServiceStack extends Stack {
       vpcSubnets: albSubnets,
     })
 
-    // Lookup the existing public hosted zone
-    const hostedZone = HostedZone.fromLookup(this, 'HostedZone', {
-      domainName: 'craftdemo.click', 
-    })
+    // // Lookup the existing public hosted zone
+    // const hostedZone = HostedZone.fromLookup(this, 'HostedZone', {
+    //   domainName: 'craftdemo.click', 
+    // })
 
-    //  weighted A Record for the ALB in the hosted zone 
-    new ARecord(this, 'AliasRecord', {
-      zone: hostedZone,
-      target: RecordTarget.fromAlias(new LoadBalancerTarget(alb)),
-      recordName: 'intuit', 
-      ttl: Duration.minutes(1), 
-      weight: 50, // Weighted routing policy with value 50
-      setIdentifier: `alb-${Stack.of(this).region}-50`,
-    })
+    // //  weighted A Record for the ALB in the hosted zone 
+    // new ARecord(this, 'AliasRecord', {
+    //   zone: hostedZone,
+    //   target: RecordTarget.fromAlias(new LoadBalancerTarget(alb)),
+    //   recordName: 'intuit', 
+    //   ttl: Duration.minutes(1), 
+    //   weight: 50, // Weighted routing policy with value 50
+    //   setIdentifier: `alb-${Stack.of(this).region}-50`,
+    // })
 
     // Creating a secret in AWS Secrets Manager for flask app
     const craftSecret = new Secret(this, 'craftSecret', {
